@@ -1,4 +1,5 @@
 from typing import List, Set, Tuple, Union
+from functools import lru_cache
 try:
     import torch
     from exllamav2 import ExLlamaV2Tokenizer
@@ -24,7 +25,7 @@ def _build_regular_tokens_list(tokenizer: ExLlamaV2Tokenizer) -> List[Tuple[int,
     return regular_tokens
 
 
-
+@lru_cache(maxsize=16)
 def build_token_enforcer_tokenizer_data(tokenizer: ExLlamaV2Tokenizer) -> TokenEnforcerTokenizerData:
     regular_tokens = _build_regular_tokens_list(tokenizer)
 
