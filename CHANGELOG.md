@@ -1,5 +1,20 @@
 # LM Format Enforcer Changelog
 
+## v0.10.7
+- [135] Updated Haystack V2 integration with latest API
+
+## v0.10.6
+- Pickling improvements for easier multiprocessing support
+
+## v0.10.5
+- SequenceParser performance optimization
+- JsonSchemaParser: number parsing supports exponents
+- Supporting tokenizers with multiple eos token ids
+
+## v0.10.4
+- Added default max Json array length to help LLMs avoid infinite loops. See README for details.
+- Updated EXLlamaV2 example to updated API
+
 ## v0.10.3
 - [#113] TRTLLM Support: Fixing type incompatibility in certain cases / library versions
 
