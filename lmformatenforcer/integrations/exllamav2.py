@@ -3,6 +3,7 @@ from functools import lru_cache
 try:
     import torch
     from exllamav2 import ExLlamaV2Tokenizer
+    from exllamav2.generator.filters import ExLlamaV2Filter
 except ImportError:
     raise ImportError('exllamav2 is not installed. Please install it with "pip install exllamav2"')
 
@@ -36,13 +37,13 @@ def build_token_enforcer_tokenizer_data(tokenizer: ExLlamaV2Tokenizer) -> TokenE
     return TokenEnforcerTokenizerData(regular_tokens, _decode, tokenizer.eos_token_id)
 
 
-class ExLlamaV2TokenEnforcerFilter:
+class ExLlamaV2TokenEnforcerFilter(ExLlamaV2Filter):
     """ExLlamaV2Sampler.Settings.filters filter that uses the token enforcer to only allow format-complying tokens"""
     token_sequence: List[int]
 
-    def __init__(self, 
-                 character_level_parser: CharacterLevelParser, 
+    def __init__(self, character_level_parser: CharacterLevelParser,
                  tokenizer_data: Union[ExLlamaV2Tokenizer, TokenEnforcerTokenizerData]):
+        super().__init__(None, None)
         if isinstance(tokenizer_data, ExLlamaV2Tokenizer):
             tokenizer_data = build_token_enforcer_tokenizer_data(tokenizer_data)
         self.token_enforcer = TokenEnforcer(tokenizer_data, character_level_parser)
@@ -54,12 +55,17 @@ class ExLlamaV2TokenEnforcerFilter:
     def feed(self, token: torch.Tensor) -> None:
         self.token_sequence.append(int(token[0][0]))
 
-    def clone(self):
+    def clone(self, c = None):
         return self
     
-    def next(self) -> Tuple[Set[int], Set[int]]:
+    def next(self) -> Union[Tuple[Set[int], Set[int]], Tuple[list[int], list[int]]]:
         allowed_tokens = self.token_enforcer.get_allowed_tokens(self.token_sequence)
-        return set(allowed_tokens), set()
+        if not hasattr(self, "allow_return_type_list"):
+            return set(allowed_tokens), set()
+        else:
+            return sorted(allowed_tokens), []
 
+    def use_background_worker(self):
+        return True
 
 __all__ = ['ExLlamaV2TokenEnforcerFilter', 'build_token_enforcer_tokenizer_data']
